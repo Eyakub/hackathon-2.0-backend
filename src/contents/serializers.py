@@ -7,18 +7,24 @@ from contents.models import Content, Author
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = '__all__'
+        exclude = ['big_metadata', 'secret_value']
 
 
 class ContentBaseSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Content
-        fields = '__all__'
+        exclude = ['big_metadata', 'secret_value']
 
 
 class ContentSerializer(serializers.Serializer):
     author = AuthorSerializer(read_only=True)
     content = ContentBaseSerializer(read_only=True)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['content'] = ContentBaseSerializer(instance).data
+        return representation
 
 
 # For Writing the data from third party api to our database
