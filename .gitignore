@@ -5,3 +5,4 @@ db/dump.sql
 .idea
 reset.zsh
 src/script.py
+__pycache__/*
