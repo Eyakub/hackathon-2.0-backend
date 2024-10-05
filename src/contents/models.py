@@ -1,7 +1,16 @@
 from django.db import models
 
 
-class Author(models.Model):
+
+class TimestampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class Author(TimestampedModel):
     """
     TODO: When the data is being created or updated we don't know, need to add that information
     """
@@ -15,7 +24,7 @@ class Author(models.Model):
     followers = models.IntegerField(default=0)
 
 
-class Content(models.Model):
+class Content(TimestampedModel):
     """
     TODO: When the data is being created or updated we don't know, need to add that information
     """
@@ -38,16 +47,34 @@ class Tag(models.Model):
     TODO: The tag is being duplicated sometimes, need to do something in the database.
     Filtering
     """
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['name'])]
+
+    def __str__(self):
+        return self.name
 
 
 class ContentTag(models.Model):
     """
     TODO: The content and tag is being duplicated, need to do something in the database
     """
-    content = models.ForeignKey(Content, on_delete=models.CASCADE)
-    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    content = models.ForeignKey(Content, on_delete=models.CASCADE,
+                                related_name='content_tags')
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE,
+                            related_name='content_tags')
+
+    class Meta:
+        unique_together = ('content', 'tag')
+        indexes = [
+            models.Index(fields=['content']),
+            models.Index(fields=['tag']),
+        ]
+
+    def __str__(self):
+        return f"{self.content.title} - {self.tag.name}"
 
 
 class MegaEcommerce(models.Model):
